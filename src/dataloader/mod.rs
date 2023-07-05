@@ -144,6 +144,10 @@ impl<T> DataLoaderInner<T> {
         match self.loader.load(&keys).await {
             Ok(values) => {
                 // update cache
+                #[feature(trasing)]
+                let span = info_span!("update_cache", keys = ?keys.len());
+                #[feature(trasing)]
+                let _enter0 = span.enter();
                 let mut request = self.requests.lock().unwrap();
                 let typed_requests = request
                     .get_mut(&tid)
