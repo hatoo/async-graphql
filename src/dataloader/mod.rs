@@ -142,7 +142,7 @@ impl<T> DataLoaderInner<T> {
         let keys = keys.into_iter().collect::<Vec<_>>();
 
         let res = {
-            let span = info_span!("actual_load");
+            let span = info_span!("actual_load", tid = ?tid, keys = ?leys.len());
             let _enter = span.enter();
             self.loader.load(&keys).await
         };
