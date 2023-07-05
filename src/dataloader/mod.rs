@@ -141,13 +141,18 @@ impl<T> DataLoaderInner<T> {
         let tid = TypeId::of::<K>();
         let keys = keys.into_iter().collect::<Vec<_>>();
 
-        match self.loader.load(&keys).await {
+        let res = {
+            let span = info_span!("actual_load");
+            let _enter = span.enter();
+            self.loader.load(&keys).await
+        };
+
+        match res {
             Ok(values) => {
                 // update cache
-                #[feature(trasing)]
-                let span = info_span!("update_cache", keys = ?keys.len());
-                #[feature(trasing)]
-                let _enter0 = span.enter();
+                let span = info_span!("update_cache");
+                let _enter = span.enter();
+
                 let mut request = self.requests.lock().unwrap();
                 let typed_requests = request
                     .get_mut(&tid)
@@ -163,10 +168,10 @@ impl<T> DataLoaderInner<T> {
                     }
                 }
 
+                drop(_enter);
+
                 // send response
-                #[feature(trasing)]
-                let span = info_span!("send_response", keys = ?keys.len());
-                #[feature(trasing)]
+                let span = info_span!("send_response");
                 let _enter = span.enter();
                 for (keys, sender) in senders {
                     let mut res = HashMap::new();
@@ -178,6 +183,8 @@ impl<T> DataLoaderInner<T> {
                 }
             }
             Err(err) => {
+                let span = info_span!("err_clause");
+                let _enter = span.enter();
                 for (_, sender) in senders {
                     sender.tx.send(Err(err.clone())).ok();
                 }
