@@ -160,6 +160,10 @@ impl<T> DataLoaderInner<T> {
                 }
 
                 // send response
+                #[feature(trasing)]
+                let span = info_span!("send_response", keys = ?keys.len());
+                #[feature(trasing)]
+                let _enter = span.enter();
                 for (keys, sender) in senders {
                     let mut res = HashMap::new();
                     res.extend(sender.use_cache_values);
