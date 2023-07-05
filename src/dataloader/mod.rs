@@ -142,9 +142,9 @@ impl<T> DataLoaderInner<T> {
         let keys = keys.into_iter().collect::<Vec<_>>();
 
         let res = {
-            // let typename = std::any::type_name::<K>();
-            // let span = info_span!("actual_load", tid = ?typename, keys = ?keys.len());
-            // let _enter = span.enter();
+            let typename = std::any::type_name::<K>();
+            let span = info_span!("actual_load", tid = ?typename, keys = ?keys.len());
+            let _enter = span.enter();
             self.loader.load(&keys).await
         };
 
